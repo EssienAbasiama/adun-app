@@ -181,11 +181,11 @@ export default function DishScreen() {
       <View style={[styles.bar, { paddingBottom: insets.bottom + 10 }]}>
         {added ? (
           <Animated.View entering={FadeIn} style={styles.addedRow}>
-            <Text style={styles.addedText}>In your order ✓</Text>
+            <Text style={styles.addedText} numberOfLines={1}>In your order ✓</Text>
             <Pressy onPress={() => router.push("/cart")} style={styles.ghost}>
               <Text style={styles.ghostText}>Review</Text>
             </Pressy>
-            <Pressy onPress={() => router.push("/checkout")} style={[styles.cta, { flex: 0, paddingHorizontal: 20 }]}>
+            <Pressy onPress={() => router.push("/checkout")} style={styles.ctaSmall}>
               <Text style={styles.ctaText}>Checkout →</Text>
             </Pressy>
           </Animated.View>
@@ -255,8 +255,9 @@ const styles = StyleSheet.create({
   qty: { fontFamily: font.bodyHeavy, fontSize: 16, color: color.paper, minWidth: 18, textAlign: "center" },
   cta: { flex: 1, height: 52, borderRadius: 999, backgroundColor: color.palm, alignItems: "center", justifyContent: "center" },
   ctaText: { fontFamily: font.bodyHeavy, fontSize: 15, color: color.white },
+  ctaSmall: { height: 52, paddingHorizontal: 20, borderRadius: 999, backgroundColor: color.palm, alignItems: "center", justifyContent: "center" },
   addedRow: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10 },
-  addedText: { flex: 1, fontFamily: font.bodyBold, fontSize: 14, color: color.plantain },
+  addedText: { flex: 1, flexShrink: 1, fontFamily: font.bodyBold, fontSize: 14, color: color.plantain },
   ghost: { height: 52, paddingHorizontal: 16, borderRadius: 999, borderWidth: 1.5, borderColor: color.night3, alignItems: "center", justifyContent: "center" },
   ghostText: { fontFamily: font.bodyBold, fontSize: 14, color: color.paper },
 });
