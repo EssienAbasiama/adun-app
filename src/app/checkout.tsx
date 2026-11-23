@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput
 import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Pressy } from "@/components/Pressy";
+import { TopScrim } from "@/components/TopScrim";
 import { money, pad2 } from "@/lib/format";
 import { haptic } from "@/lib/haptics";
 import { nowMs, orderId } from "@/lib/ids";
@@ -250,6 +251,7 @@ export default function Checkout() {
           </View>
         </Animated.View>
       </ScrollView>
+      <TopScrim color={color.paper2} />
 
       <View style={[styles.top, { paddingTop: insets.top + 6 }]}>
         <Pressy onPress={() => router.back()} style={styles.round} accessibilityLabel="Back">
