@@ -5,6 +5,7 @@ import Animated, { FadeIn, FadeOutLeft, LinearTransition, useAnimatedStyle, useS
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Ellipse, Path } from "react-native-svg";
 import { Pressy } from "@/components/Pressy";
+import { TopScrim } from "@/components/TopScrim";
 import { Thumb } from "@/components/Thumb";
 import { money } from "@/lib/format";
 import { site } from "@/lib/site";
@@ -115,6 +116,7 @@ export default function CartScreen() {
           </>
         )}
       </ScrollView>
+      <TopScrim color={color.paper} />
 
       {cart.length > 0 && (
         <Animated.View entering={FadeIn} style={[styles.bar, { bottom: insets.bottom + 70 }]}>

@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from "react-n
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DishArt } from "@/art/DishArt";
 import { Pressy } from "@/components/Pressy";
+import { TopScrim } from "@/components/TopScrim";
 import { money } from "@/lib/format";
 import { haptic } from "@/lib/haptics";
 import { categories, menu, signatures } from "@/lib/menu";
@@ -25,95 +26,98 @@ export default function MenuScreen() {
   const sigW = Math.min(width * 0.62, 260);
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
-      <View style={styles.head}>
-        <Text style={styles.eyebrow}>Lagos-born · World-fed</Text>
-        <Text style={styles.h1}>The Menu</Text>
-        <Text style={styles.lede}>Naija classics from the pot station, the world from the other side of the pass, and a belt of small chops in between.</Text>
-      </View>
+    <View style={styles.root}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
+        <View style={styles.head}>
+          <Text style={styles.eyebrow}>Lagos-born · World-fed</Text>
+          <Text style={styles.h1}>The Menu</Text>
+          <Text style={styles.lede}>Naija classics from the pot station, the world from the other side of the pass, and a belt of small chops in between.</Text>
+        </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        {categories.map((c) => {
-          const on = c.id === cat;
-          return (
-            <Pressy
-              key={c.id}
-              feel="tick"
-              onPress={() => setCat(c.id)}
-              style={[styles.chip, on && styles.chipOn]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-            >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>{c.label}</Text>
-            </Pressy>
-          );
-        })}
-      </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          {categories.map((c) => {
+            const on = c.id === cat;
+            return (
+              <Pressy
+                key={c.id}
+                feel="tick"
+                onPress={() => setCat(c.id)}
+                style={[styles.chip, on && styles.chipOn]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+              >
+                <Text style={[styles.chipText, on && styles.chipTextOn]}>{c.label}</Text>
+              </Pressy>
+            );
+          })}
+        </ScrollView>
 
-      {showSigs && (
-        <Animated.View entering={FadeIn} exiting={FadeOut}>
-          <Text style={styles.section}>The Table · build it your way</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={sigW + 14} decelerationRate="fast" contentContainerStyle={{ paddingHorizontal: 16, gap: 14 }}>
-            {signatures.map((s, i) => (
-              <Animated.View key={s.slug} entering={FadeInDown.delay(i * 50)}>
-                <Pressy depth={0.97} onPress={() => router.push(`/dish/${s.slug}`)} style={[styles.sig, { width: sigW, backgroundColor: s.theme.bg }]} accessibilityLabel={`Customize ${s.name}`}>
-                  <DishArt slug={s.slug} size={sigW - 36} style={{ alignSelf: "center" }} />
-                  <Text style={[styles.sigEyebrow, { color: s.theme.accent }]}>{s.origin.city}</Text>
-                  <Text style={[styles.sigName, { color: s.theme.deep }]} numberOfLines={1}>
-                    {s.name}
-                  </Text>
-                  <View style={styles.row}>
-                    <Text style={[styles.sigPrice, { color: s.theme.deep }]}>{money(s.price)}</Text>
-                    <Text style={[styles.sigCta, { color: s.theme.deep }]}>Customize →</Text>
-                  </View>
-                </Pressy>
-              </Animated.View>
-            ))}
-          </ScrollView>
-        </Animated.View>
-      )}
-
-      {cat !== "signature" && (
-        <>
-          <Text style={styles.section}>
-            {items.length} {items.length === 1 ? "dish" : "dishes"}
-          </Text>
-          <View style={styles.grid}>
-            {items.map((m) => (
-              <Animated.View key={m.id} entering={FadeIn.duration(320)} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(18)} style={{ width: col }}>
-                <View style={styles.card}>
-                  <Image source={m.image} style={{ width: col, height: col * 0.82 }} contentFit="cover" transition={200} />
-                  <Pressy
-                    feel="none"
-                    onPress={() => addItem(m)}
-                    style={styles.add}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Add ${m.name} to order`}
-                    hitSlop={8}
-                  >
-                    <Text style={styles.addText}>＋</Text>
+        {showSigs && (
+          <Animated.View entering={FadeIn} exiting={FadeOut}>
+            <Text style={styles.section}>The Table · build it your way</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={sigW + 14} decelerationRate="fast" contentContainerStyle={{ paddingHorizontal: 16, gap: 14 }}>
+              {signatures.map((s, i) => (
+                <Animated.View key={s.slug} entering={FadeInDown.delay(i * 50)}>
+                  <Pressy depth={0.97} onPress={() => router.push(`/dish/${s.slug}`)} style={[styles.sig, { width: sigW, backgroundColor: s.theme.bg }]} accessibilityLabel={`Customize ${s.name}`}>
+                    <DishArt slug={s.slug} size={sigW - 36} style={{ alignSelf: "center" }} />
+                    <Text style={[styles.sigEyebrow, { color: s.theme.accent }]}>{s.origin.city}</Text>
+                    <Text style={[styles.sigName, { color: s.theme.deep }]} numberOfLines={1}>
+                      {s.name}
+                    </Text>
+                    <View style={styles.row}>
+                      <Text style={[styles.sigPrice, { color: s.theme.deep }]}>{money(s.price)}</Text>
+                      <Text style={[styles.sigCta, { color: s.theme.deep }]}>Customize →</Text>
+                    </View>
                   </Pressy>
-                </View>
-                <View style={styles.rowTop}>
-                  <Text style={styles.name} numberOfLines={2}>
-                    {m.name}
+                </Animated.View>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
+
+        {cat !== "signature" && (
+          <>
+            <Text style={styles.section}>
+              {items.length} {items.length === 1 ? "dish" : "dishes"}
+            </Text>
+            <View style={styles.grid}>
+              {items.map((m) => (
+                <Animated.View key={m.id} entering={FadeIn.duration(320)} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(18)} style={{ width: col }}>
+                  <View style={styles.card}>
+                    <Image source={m.image} style={{ width: col, height: col * 0.82 }} contentFit="cover" transition={200} />
+                    <Pressy
+                      feel="none"
+                      onPress={() => addItem(m)}
+                      style={styles.add}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Add ${m.name} to order`}
+                      hitSlop={8}
+                    >
+                      <Text style={styles.addText}>＋</Text>
+                    </Pressy>
+                  </View>
+                  <View style={styles.rowTop}>
+                    <Text style={styles.name} numberOfLines={2}>
+                      {m.name}
+                    </Text>
+                    <Text style={styles.price}>{money(m.price)}</Text>
+                  </View>
+                  <Text style={styles.desc} numberOfLines={2}>
+                    {m.desc}
                   </Text>
-                  <Text style={styles.price}>{money(m.price)}</Text>
-                </View>
-                <Text style={styles.desc} numberOfLines={2}>
-                  {m.desc}
-                </Text>
-                <Text style={styles.origin}>{m.origin}</Text>
-              </Animated.View>
-            ))}
-          </View>
-          <Pressy onPress={() => { haptic.tap(); router.push("/belt"); }} style={styles.beltCta}>
-            <Text style={styles.beltEyebrow}>12:00 – 17:00 daily</Text>
-            <Text style={styles.beltTitle}>Sushi & small chops on The Belt →</Text>
-          </Pressy>
-        </>
-      )}
-    </ScrollView>
+                  <Text style={styles.origin}>{m.origin}</Text>
+                </Animated.View>
+              ))}
+            </View>
+            <Pressy onPress={() => { haptic.tap(); router.push("/belt"); }} style={styles.beltCta}>
+              <Text style={styles.beltEyebrow}>12:00 – 17:00 daily</Text>
+              <Text style={styles.beltTitle}>Sushi & small chops on The Belt →</Text>
+            </Pressy>
+          </>
+        )}
+      </ScrollView>
+      <TopScrim color={color.paper} />
+    </View>
   );
 }
 

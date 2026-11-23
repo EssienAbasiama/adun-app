@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, G, Path, Rect, Text as SvgText } from "react-native-svg";
 import { DishArt } from "@/art/DishArt";
 import { Pressy } from "@/components/Pressy";
+import { TopScrim } from "@/components/TopScrim";
 import { Thumb } from "@/components/Thumb";
 import { money } from "@/lib/format";
 import { haptic } from "@/lib/haptics";
@@ -237,6 +238,7 @@ export default function OrderScreen() {
           </Animated.View>
         )}
       </ScrollView>
+      <TopScrim color={color.paper} />
 
       <Confetti fire={done} />
 
