@@ -4,7 +4,7 @@
  * are all derived from it, so the spin stays at 60/120 fps even with eight heavy SVG plates.
  */
 import { router } from "expo-router";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 import Animated, {
@@ -146,6 +146,17 @@ export default function TableScreen() {
   const [ci, setCi] = useState(0);
   const sig = signatures[active];
   const k = 180 / (Math.PI * g.R);
+  // A spin that starts on a plate must not end as a tap on it. Native cancels the press when
+  // the pan takes over; the browser does not, so plate taps are ignored during and just after a spin.
+  const panning = useRef(false);
+  const panEndedAt = useRef(0);
+  const onPanStart = useCallback(() => {
+    panning.current = true;
+  }, []);
+  const onPanEnd = useCallback(() => {
+    panning.current = false;
+    panEndedAt.current = Date.now();
+  }, []);
 
   // spin in on first open, like the website
   useEffect(() => {
@@ -184,6 +195,7 @@ export default function TableScreen() {
       cancelAnimation(rot);
       start.value = rot.value + e.translationX * k;
       runOnJS(setSettled)(false);
+      runOnJS(onPanStart)();
     },
     onUpdate: (e) => {
       "worklet";
@@ -195,11 +207,13 @@ export default function TableScreen() {
       const projected = Math.round((rot.value - e.velocityX * k * 0.22) / STEP) * STEP;
       const target = Math.max(base - 2 * STEP, Math.min(base + 2 * STEP, projected));
       settleOn(target, -e.velocityX * k);
+      runOnJS(onPanEnd)();
     },
   });
 
   const goTo = useCallback(
     (i: number) => {
+      if (panning.current || Date.now() - panEndedAt.current < 350) return;
       if (i === active) {
         router.push(`/dish/${signatures[i].slug}`);
         return;
@@ -240,7 +254,7 @@ export default function TableScreen() {
           <Animated.Text key={`eb-${sig.slug}`} entering={FadeIn.duration(400)} exiting={FadeOut.duration(150)} style={[styles.eyebrow, { color: sig.theme.accent }]}>
             {sig.region === "naija" ? "Naija classic" : "Around the world"} · {sig.origin.city}
           </Animated.Text>
-          <Animated.Text key={`t-${sig.slug}`} entering={FadeInDown.duration(520).easing(Easing.out(Easing.exp))} exiting={FadeOutUp.duration(220)} style={[styles.title, { fontSize: titleSize, color: sig.theme.deep }]}>
+          <Animated.Text key={`t-${sig.slug}`} entering={FadeInDown.duration(520).easing(Easing.bezier(0.16, 1, 0.3, 1))} exiting={FadeOutUp.duration(220)} style={[styles.title, { fontSize: titleSize, color: sig.theme.deep }]}>
             {sig.name}
           </Animated.Text>
           <Animated.Text key={`tg-${sig.slug}`} entering={FadeIn.delay(120).duration(500)} exiting={FadeOut.duration(150)} numberOfLines={2} style={styles.tagline}>
