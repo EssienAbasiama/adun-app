@@ -57,7 +57,8 @@ function useGeo(): Geo {
   return useMemo(() => {
     const S = Math.min(w * 0.66, h * 0.33, 380);
     const cy = h * 0.5;
-    const R = Math.max(S * 1.32, w * 1.05);
+    // tight enough that the neighbouring plates peek in at the screen edges
+    const R = Math.max(S * 1.15, w * 0.78);
     return { w, h, S, cx: w / 2, cy, R, ringCy: cy + R, disc: 2 * (R + S * 0.64) };
   }, [w, h]);
 }
@@ -226,11 +227,6 @@ export default function TableScreen() {
   return (
     <GestureDetector gesture={pan}>
       <Animated.View style={[styles.root, bg]}>
-        {/* giant origin city */}
-        <Animated.Text key={`city-${sig.slug}`} entering={FadeIn.duration(700)} exiting={FadeOut.duration(300)} numberOfLines={1} adjustsFontSizeToFit style={[styles.city, { top: g.cy - g.S * 0.95, color: sig.theme.accent }]}>
-          {sig.origin.city.toUpperCase()}
-        </Animated.Text>
-
         {/* header */}
         <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
           <Text style={styles.logo}>Àdùn</Text>
@@ -305,7 +301,6 @@ const styles = StyleSheet.create({
   root: { flex: 1, overflow: "hidden" },
   abs: { position: "absolute" },
   plate: { position: "absolute", left: 0, top: 0 },
-  city: { position: "absolute", left: 12, right: 12, textAlign: "center", fontFamily: font.display, fontSize: 120, opacity: 0.12, letterSpacing: -2 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 22 },
   logo: { fontFamily: font.display, fontSize: 28, color: color.ink, letterSpacing: -0.5 },
   count: { fontFamily: font.bodyBold, fontSize: 13, color: color.ink, letterSpacing: 1 },
