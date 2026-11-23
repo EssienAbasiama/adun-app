@@ -5,9 +5,10 @@
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
-import Animated, { FadeIn, FadeInDown, cancelAnimation, useAnimatedStyle, useSharedValue, withDecay, withSequence, withSpring, withTiming } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, { Extrapolation, FadeIn, FadeInDown, cancelAnimation, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withDecay, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DishArt } from "@/art/DishArt";
 import { Pressy } from "@/components/Pressy";
@@ -17,6 +18,8 @@ import { defaultOpts, menu, priceFor, signatures, type OptionGroup, type Opts } 
 import { useOrder } from "@/lib/order";
 import { cartCount, useStore } from "@/lib/store";
 import { color, font } from "@/lib/theme";
+
+const SMALL = 0.46;
 
 function Group({ g, value, onChange, accent }: { g: OptionGroup; value: string | string[]; onChange: (v: string | string[]) => void; accent: string }) {
   return (
@@ -66,6 +69,14 @@ export default function DishScreen() {
   const [added, setAdded] = useState(false);
   const unit = priceFor(sig, opts);
   const size = Math.min(width * 0.84, 420);
+  // As you scroll to the options, the plate shrinks and pins under the top bar, so you can watch each choice redraw it.
+  const plateTop = insets.top + 56;
+  const pinTop = insets.top + 4;
+  const collapse = Math.max(1, plateTop + size - pinTop - SMALL * size);
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+  });
   const pairs = useMemo(() => sig.pairs.map((id) => menu.find((m) => m.id === id)).filter((m): m is NonNullable<typeof m> => !!m), [sig]);
 
   // the plate: flick to spin, and a little pop whenever an option redraws it
@@ -76,7 +87,8 @@ export default function DishScreen() {
     pop.value = withSequence(withTiming(0.94, { duration: 90 }), withSpring(1, { damping: 9, stiffness: 220 }));
   }, [optsKey, pop]);
   const pan = usePanGesture({
-    minDistance: 4,
+    activeOffsetX: [-8, 8],
+    failOffsetY: [-12, 12],
     onActivate: () => {
       "worklet";
       cancelAnimation(spin);
@@ -90,15 +102,30 @@ export default function DishScreen() {
       spin.value = withDecay({ velocity: e.velocityX * 0.45, deceleration: 0.995 });
     },
   });
-  const plateStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${spin.value}deg` }, { scale: pop.value }] }));
+  const plateStyle = useAnimatedStyle(() => {
+    const y = Math.max(0, scrollY.value);
+    const k = interpolate(y, [0, collapse], [1, SMALL], Extrapolation.CLAMP);
+    // until pinned, the plate's bottom edge rides with the content under it; after that it stays put
+    const ty = y <= collapse ? (size / 2) * (1 - k) : y + pinTop + (SMALL * size) / 2 - plateTop - size / 2;
+    return { transform: [{ translateY: ty }, { rotate: `${spin.value}deg` }, { scale: pop.value * k }] };
+  });
+  const bandStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [collapse - 70, collapse], [0, 1], Extrapolation.CLAMP),
+    transform: [{ translateY: Math.max(0, scrollY.value) }],
+  }));
 
   const set = (id: string, v: string | string[]) => setOpts((o) => ({ ...o, [id]: v }));
 
   return (
     <View style={[styles.root, { backgroundColor: sig.theme.bg }]}>
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 56, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingTop: plateTop, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
+        {/* the band the pinned plate sits on, so text scrolls away underneath it */}
+        <Animated.View pointerEvents="none" style={[styles.band, { height: pinTop + SMALL * size + 6 }, bandStyle]}>
+          <View style={{ flex: 1, backgroundColor: sig.theme.bg }} />
+          <LinearGradient colors={[sig.theme.bg, `${sig.theme.bg}00`]} style={styles.bandFade} />
+        </Animated.View>
         <GestureDetector gesture={pan}>
-          <Animated.View entering={FadeIn.duration(500)} style={[{ alignSelf: "center", width: size, height: size }, plateStyle]}>
+          <Animated.View entering={FadeIn.duration(500)} style={[{ alignSelf: "center", width: size, height: size, zIndex: 3 }, plateStyle]}>
             <DishArt slug={sig.slug} opts={opts} size={size} />
           </Animated.View>
         </GestureDetector>
@@ -138,7 +165,7 @@ export default function DishScreen() {
             </View>
           )}
         </Animated.View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* top bar */}
       <View style={[styles.top, { paddingTop: insets.top + 6 }]}>
@@ -194,6 +221,8 @@ export default function DishScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  band: { position: "absolute", left: 0, right: 0, top: 0, zIndex: 2 },
+  bandFade: { position: "absolute", left: 0, right: 0, bottom: -26, height: 26 },
   hint: { textAlign: "center", fontFamily: font.bodyHeavy, fontSize: 10.5, letterSpacing: 2, textTransform: "uppercase", color: color.ink3, marginTop: 8 },
   body: { paddingHorizontal: 20, marginTop: 18 },
   eyebrow: { fontFamily: font.bodyHeavy, fontSize: 11, letterSpacing: 2, textTransform: "uppercase" },
