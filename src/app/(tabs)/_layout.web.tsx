@@ -5,6 +5,7 @@
 import { Tabs, router, type Href } from "expo-router";
 import type { ComponentProps } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
 import { Pressy } from "@/components/Pressy";
 import { cartCount, useStore } from "@/lib/store";
@@ -23,8 +24,9 @@ const LABELS: Record<string, string> = { index: "Table", menu: "Menu", belt: "Th
 
 function Bar({ state }: BottomTabBarProps) {
   const count = useStore((s) => cartCount(s.cart));
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.wrap} pointerEvents="box-none">
+    <View style={[styles.wrap, { bottom: Math.max(14, insets.bottom - 6) }]} pointerEvents="box-none">
       <View style={styles.bar}>
         {state.routes.map((r, i) => {
           const on = state.index === i;
@@ -64,7 +66,7 @@ export default function TabsLayoutWeb() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: "absolute", left: 0, right: 0, bottom: 14, alignItems: "center" },
+  wrap: { position: "absolute", left: 0, right: 0, alignItems: "center" },
   bar: { flexDirection: "row", gap: 2, backgroundColor: "rgba(255,253,248,0.86)", borderRadius: 999, paddingVertical: 8, paddingHorizontal: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(29,20,16,0.08)", shadowColor: "#000", shadowOpacity: 0.14, shadowRadius: 20, shadowOffset: { width: 0, height: 8 } },
   item: { alignItems: "center", paddingHorizontal: 10, paddingVertical: 2, gap: 2 },
   label: { fontFamily: font.bodyBold, fontSize: 10.5 },
